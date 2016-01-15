@@ -17,16 +17,18 @@ If you actually want to develop on and contribute to Metasploit, read on!
 
 ## Getting Started
 
-We assume that you're on some recent version of Ubuntu Linux. If not,
-then you're going to be on your own on how to get all your dependencies
-lined up . If you've successfully set up a development environment on
-something non-Ubuntu, and you'd like to share, let us know and we'll
-link to your tutorial from here.
+This documentation is based on Ubuntu Linux, Desktop version 14.04. If
+this is not your version, the advice here will still be somewhat
+helpful, but probably won't exactly match your environment.
 
-Please note that Kali Linux (formerly Backtrack Linux) is not very suitable
-as a development environment, and you may run into missing upstream
-packages. It's a great place to use Metasploit, but not so great for
-hacking on it directly.
+If you've successfully set up a development environment on something
+non-Ubuntu, and you'd like to share, let us know and we'll link to your
+tutorial from here.
+
+Please note that Kali Linux (formerly Backtrack Linux) is not very
+suitable as a development environment, and you may run into missing
+upstream packages. It's a great place to use Metasploit, but not so
+great for doing development work on it.
 
 Throughout this documentation, we'll be using the example user of "Fakey
 McFakepants," who has the e-mail address of "mcfakepants@packetfu.com"
@@ -43,29 +45,30 @@ sudo apt-get -y install \
   libreadline6-dev libcurl4-openssl-dev git-core \
   libssl-dev libyaml-dev openssl autoconf libtool \
   ncurses-dev bison curl wget postgresql \
-  postgresql-contrib libpq-dev \
-  libapr1 libaprutil1 libsvn1 \
-  libpcap-dev libsqlite3-dev
+  postgresql-contrib libpq-dev libapr1 libaprutil1 \
+  libsvn1 libpcap-dev libsqlite3-dev libgmp-dev
 ````
 
 Note that this does **not** include an appropriate text editor or IDE,
-nor does it include the Ruby interpreter. We'll get to that in a second.
+nor does it include the Ruby interpreter. We'll get to those in a second.
 
 ## Getting Ruby
 
 Many standard distributions of Ruby are lacking in one regard or
 another. Lucky for all of us, there are several ways to easily install
 and maintain ruby versions. ```rvm``` is popular among many Metasploit
-developers and recommended, however ```rbenv``` is a good choice too.  So, pick one of the following:
+developers and recommended, however ```rbenv``` is a good choice too.
+So, pick one of the following:
 
 ### rvm
 
-Wayne Seguin's RVM has become quite excellent at providing several proven Ruby interpreters. Visit
-[https://rvm.io/](https://rvm.io/) to read up on it or just trust that it'll all work out with a simple:
+Wayne Seguin's RVM has become quite excellent at providing several
+proven Ruby interpreters. Visit [https://rvm.io/](https://rvm.io/) to
+read up on it or just trust that it'll all work out with a simple:
 
-````bash
-\curl -L https://get.rvm.io | bash -s stable --autolibs=enabled --ruby=2.1.5
-````
+```bash
+\curl -L https://get.rvm.io | bash -s stable --autolibs=enabled --ruby=2.1.8
+```
 
 Note the *lack* of sudo; you will nearly always want to install this as
 a regular user, and not as root.
@@ -74,20 +77,29 @@ Sometimes, depending on your particular platform, this incantation may
 not be reliable. This is nearly identical, but more typing:
 
 ````bash
-\curl -o rvm.sh -L get.rvm.io && cat rvm.sh | bash -s stable --autolibs=enabled --ruby=2.1.5
+\curl -o rvm.sh -L get.rvm.io && cat rvm.sh | bash -s stable --autolibs=enabled --ruby=2.1.8
 ````
 
-Also, if you're sketchy about piping a web site directly to bash (which you should be), you
-can perform each step individually, without the &&:
+Also, if you're sketchy about piping a web site directly to bash (which
+you should be), you can perform each step individually, without the &&:
 
 ````bash
-\curl -o rvm.sh -L get.rvm.io 
+\curl -o rvm.sh -L get.rvm.io
 less rvm.sh
-cat rvm.sh | bash -s stable --autolibs=enabled --ruby=2.1.5
+cat rvm.sh | bash -s stable --autolibs=enabled --ruby=2.1.8
 ````
+Finally, if this is your first time installing rvm, it **will fail**
+with a complaint about a missing GPG key.  Just follow the instructions
+given at the end of the error message to install recify that by
+importing the correct GPG key. Right now, it's:
+
+```bash
+gpg --keyserver hkp://keys.gnupg.net --recv-keys \
+409B6B1796C275462A1703113804BB82D39DC0E3
+```
 
 Next, load the RVM scripts by either opening a new terminal window, or
-just run: 
+just run:
 
 ````bash
 source ~/.rvm/scripts/rvm
@@ -101,45 +113,51 @@ explicitly add this (slightly different) line to the end of
 source /usr/local/rvm/scripts/rvm
 ````
 
+Again, though, you will want to avoid being root for development work.
+
 Finally, you will usually need to tick the `Run command as login shell`
 on the default profile of gnome-terminal (assuming stock Ubuntu), or
 else you will get the error message that [RVM is not a
 function](http://stackoverflow.com/questions/9336596/rvm-installation-not-working-rvm-is-not-a-function).
+You can find that option in your Gnome Terminal options, under Edit >
+Profile Preferences > Title and Command.
 
 Assuming all goes as planned, you should end up with something like this
 in your shell:
 
 [[/screens/rvm_install.png]]
 [[/screens/rvm_finish.png]]
-*<sup>TODO: Update these screens with 2.1.5</sup>*
+*<sup>TODO: Update these screens with 2.1.8</sup>*
 
 Because Metasploit now ships with `.ruby-gemset` and `.ruby-version`
 files, you do not need to do anything special to ensure your gems get
 stashed in the right place. When you cd to your Metasploit framework
 checkout, your environment will automatically switch contexts to
-`ruby-2.1.5@metasploit-framework`.
+`ruby-2.1.8@metasploit-framework`.
 
 ### rbenv
 
 Simply follow [this](https://github.com/sstephenson/rbenv#installation)
 set of instructions.
 
-### Moving to Ruby 2.1.x (from 1.9.3)
+### Other Rubies
 
-As a Metasploit developer, you are encouraged to switch to Ruby 2.1.x as soon as possible. You should see some significant performance increases as a result. As of January 6, 2015, only Ruby 2.1.x is supported and 1.9.3 has been [completely end of life'd](https://www.ruby-lang.org/en/news/2014/01/10/ruby-1-9-3-will-end-on-2015/). Note that Ruby 2.2.x is **not** supported yet.
-
-If you'd like to use another version of ruby, ```rvm``` and ```rbenv``` can help you easily switch:
-
+If you'd like to use another version of ruby, ```rvm``` and ```rbenv```
+can help you easily switch:
 
 #### Using 2.1.x with ```rvm```
 
-Just run `rvm --create --versions-conf use rubyversion@metasploit-framework`, replacing `rubyversion` with whatever version of Ruby you like (see [PR #4136](https://github.com/rapid7/metasploit-framework/pull/4136)).
+Just run `rvm --create --versions-conf use
+rubyversion@metasploit-framework`, replacing `rubyversion` with whatever
+version of Ruby you like (see [PR
+#4136](https://github.com/rapid7/metasploit-framework/pull/4136)).
 
-Running the following will cause your checkout to use Ruby 2.1.5 by default:
+Running the following will cause your checkout to use Ruby 2.1.8 by
+default:
 
 ````
-rvm install 2.1.5 &&
-rvm --create --versions-conf use 2.1.5@metasploit-framework &&
+rvm install 2.1.8 &&
+rvm --create --versions-conf use 2.1.8@metasploit-framework &&
 pushd ..; popd &&
 bundle install
 ````
@@ -149,7 +167,7 @@ bundle install
 Just run:
 
 ```
-rbenv shell 2.1.5
+rbenv shell 2.1.8
 ````
 
 ## Your Editor
@@ -181,15 +199,16 @@ curl -Lo- https://bit.ly/janus-bootstrap | bash
 
 This will checkout a version of Janus (using Git) to your ~/.vim
 directory. Yep, you now have a git repo in one of your more important
-dot-directories.
+dot-directories. Be sure to update it occasionally.
 
-Finally, I have a very small set of defaults, here:
-https://gist.github.com/4658778 . Drop this in your `~/.vimrc.after`
-file. Note, **Metasploit no longer uses hard tabs**.
+Finally, I have a very [small set](https://gist.github.com/4658778) of
+defaults that I like. Drop those in your `~/.vimrc.after`
+file.
 
 *<sup>TODO: Add Rubymine docs, add screenshots for this</sup>*
-*<sup>TODO: Could reference the Sublime Text 2 plugin TidyOnExit for anyone
- using Sublime</sup>*
+
+*<sup>TODO: Could reference the Sublime Text 2 plugin TidyOnExit for
+anyone using Sublime</sup>*
 
 ## Using GitHub
 
@@ -238,20 +257,21 @@ workflow.
 
 ### Bundler config
 
-Metasploit Framework now uses Bundler extensively to keep versioned gemsets
-all nicely aligned. This means that after pulling a fresh version of Metasploit
-from GitHub, you likely need to `bundle install` (**not `bundle update`**). To
-make that process move slightly quicker, you're encouraged to install gems
-[in parallel](http://robots.thoughtbot.com/parallel-gem-installing-using-bundler)
-by first running `bundle config --global jobs X` (where X is the number of CPUs
-you have available, minus one).
+Metasploit Framework now uses Bundler extensively to keep versioned
+gemsets all nicely aligned. This means that after pulling a fresh
+version of Metasploit from GitHub, you likely need to `bundle install`
+(**not `bundle update`**). To make that process move slightly quicker,
+you're encouraged to install gems [in
+parallel](http://robots.thoughtbot.com/parallel-gem-installing-using-bundler)
+by first running `bundle config --global jobs X` (where X is the number
+of CPUs you have available, minus one).
 
 ## Working with Git
 
 The rest of this document will walk through the usual use case of
 working with Git and GitHub to get a local source checkout, commit
 something new, and get it submitted to be part of the Metasploit
-Framework distribution. 
+Framework distribution.
 
 The example here will commit the file _2.txt_ to _test/git/_ , but
 imagine that we're committing some new module like
@@ -289,18 +309,20 @@ metasploit-framework sub-directory:
 ### Setting Your Prompt
 
 Now might be a good time to decorate your prompt. At the minimum, you
-will want [something like this](https://gist.github.com/2555109) in your
+will want [something like
+this](https://gist.github.com/7fd809ba963bbece9ff5) in your
 ~/.bash_aliases to let you know on the prompt which branch you're in, if
 you're in a git repo. I have no idea how else you would be able to track
 what branch you're in, honestly.
 
 In the end, you'll have a prompt that looks like:
 
-````
-(master) fakey@mazikeen:~/git/metasploit-framework$ 
-````
+```
+[ruby-2.1.8]
+(master) fakey@mazikeen:~/git/metasploit-framework$
+```
 
-where the master bit changes depending on what branch you're in.
+where the parenthetic part changes depending on what branch you're in.
 
 ## Bundle Install
 
@@ -313,46 +335,30 @@ from your metasploit-framework checkout. It'll look like this:
 [*] Metasploit requires the Bundler gem to be installed
     $ gem install bundler
 (master) fakey@mazikeen:~/git/metasploit-framework$ gem install bundler
-Successfully installed bundler-1.3.5
+Successfully installed bundler-1.11.2
+Installing ri documentation for bundler-1.11.2
+Parsing documentation for bundler-1.11.2
+Done installing documentation for bundler after 3 seconds
 1 gem installed
-Installing ri documentation for bundler-1.3.5...
-Installing RDoc documentation for bundler-1.3.5...
 (master) todb@mazikeen:~/git/rapid7/metasploit-framework
 $ ./msfconsole -L
-Could not find rake-10.0.4 in any of the sources
+Could not find rake-10.4.2 in any of the sources
 Run `bundle install` to install missing gems.
 (master) fakey@mazikeen:~/git/metasploit-framework$ bundle install
-Fetching gem metadata from http://rubygems.org/.........
-Fetching gem metadata from http://rubygems.org/..
-Updating git://github.com/rapid7/metasploit_data_models.git
-Installing rake (10.0.4) 
-Installing i18n (0.6.1) 
-Installing multi_json (1.0.4) 
-Installing activesupport (3.2.13) 
-Installing builder (3.0.4) 
-Installing activemodel (3.2.13) 
-Installing arel (3.0.2) 
-Installing tzinfo (0.3.37) 
-Installing activerecord (3.2.13) 
-Installing database_cleaner (0.9.1) 
-Installing diff-lcs (1.2.2) 
-Installing factory_girl (4.2.0) 
-Installing json (1.7.7) 
-Installing pg (0.15.0) 
-Using metasploit_data_models (0.6.4) from git://github.com/rapid7/metasploit_data_models.git (at 0.6.4) 
-Installing msgpack (0.5.4) 
-Installing nokogiri (1.5.9) 
-Installing pcaprub (0.11.3) 
-Installing redcarpet (2.2.2) 
-Installing robots (0.10.1) 
-Installing rspec-core (2.13.1) 
-Installing rspec-expectations (2.13.0) 
-Installing rspec-mocks (2.13.0) 
-Installing rspec (2.13.0) 
-Installing simplecov-html (0.5.3) 
-Installing simplecov (0.5.4) 
-Installing yard (0.8.5.2) 
-Using bundler (1.3.5) 
+Fetching gem metadata from https://rubygems.org/............
+Fetching version metadata from https://rubygems.org/...
+Fetching dependency metadata from https://rubygems.org/..
+Resolving dependencies...
+Installing rake 10.4.2
+Installing i18n 0.7.0
+Using minitest 4.7.5
+Installing multi_json 1.11.2
+Installing thread_safe 0.3.5
+Installing tzinfo 0.3.45
+Installing builder 3.1.4
+
+[...etc...]
+
 Your bundle is complete!
 Use `bundle show [gemname]` to see where a bundled gem is installed.
 (master) fakey@mazikeen:~/git/metasploit-framework$
@@ -364,24 +370,63 @@ whenever the `Gemfile` changes (`msfupdate` does this automatically).
 
 You do *not* want to run `bundle update` by itself, ever, unless you are
 very serious about updating every Gem in your gemset to some unknown
-bleeding-edge version.
+bleeding-edge version. This is always a Bad Idea and will certainly
+Break Things.
 
 ## Configure Your Database
 
 While it's possible to run Metasploit without a database, it's growing
-increasingly uncommon to do so. The fine folks over at the Fedora
-Project Wiki have a snappy guide to get your database configured for the
-first time, here:
-https://fedoraproject.org/wiki/Metasploit_Postgres_Setup
+increasingly uncommon to do so. This handy shell script will take care
+of that, by setting up Postgresql to start on boot, listen only on
+localhost, and set up a database.yml file suitable for normal
+development use (be sure to replace YOUR_UBUNTU_PASSWORD and
+YOUR_PSQL_PASSWORD with reasonable alternatives).
 
-Once that's complete, rename your
-[database.yml.example](https://github.com/rapid7/metasploit-framework/blob/master/config/database.yml.example)
-file to 'database.yml' and be sure to fill in at least the "development"
-and "test" sections.
+```bash
+#!/bin/bash
 
-If you are going to be running specs the user for the test database will need to be able to create databases which can be done by running the following psql command:
+# Set Postgresql to start on boot and set reasonable defaults
+echo 'YOUR_UBUNTU_PASSWORD' | sudo -kS update-rc.d postgresql enable &&
+echo 'YOUR UBUNTU_PASSWORD' | sudo  -S service postgresql start &&
+cat <<EOF> $HOME/pg-utf8.sql
+update pg_database set datallowconn = TRUE where datname = 'template0';
+\c template0
+update pg_database set datistemplate = FALSE where datname = 'template1';
+drop database template1;
+create database template1 with template = template0 encoding = 'UTF8';
+update pg_database set datistemplate = TRUE where datname = 'template1';
+\c template1
+update pg_database set datallowconn = FALSE where datname = 'template0';
+\q
+EOF
+sudo -u postgres psql -f $HOME/pg-utf8.sql &&
+sudo -u postgres createuser msfdev -dRS &&
+sudo -u postgres psql -c \
+  "ALTER USER msfdev with ENCRYPTED PASSWORD 'YOUR_PSQL_PASSWORD';" &&
+sudo -u postgres createdb --owner msfdev msf_dev_db &&
+sudo -u postgres createdb --owner msfdev msf_test_db &&
+cat <<EOF> $HOME/.msf4/database.yml
+# Development Database
+development: &pgsql
+  adapter: postgresql
+  database: msf_dev_db
+  username: msfdev
+  password: YOUR_PSQL_PASSWORD
+  host: localhost
+  port: 5432
+  pool: 5
+  timeout: 5
 
-```ALTER USER your_user WITH CREATEDB;```
+# Production database -- same as dev
+production: &production
+  <<: *pgsql
+
+# Test database -- not the same, since it gets dropped all the time
+test:
+  <<: *pgsql
+  database: msf_test_db
+EOF
+```
 
 ## Start Metasploit
 
@@ -391,13 +436,9 @@ to run it straight from your git clone with `./msfconsole -L`:
 
 [[/screens/fork06.png]]
 
-Note that if you need resources that only root has access to, you'll
-want to run `rvmsudo ./msfconsole -L` instead.
-
-To start off connected to a database, you will want to run something
-like `./msfconsole -L -y config/database.yml -e development`
-
-[[/screens/database01.png]]
+Note that if you need resources that only root has access to, like
+low-numbered TCP ports or privileged file handles, you'll want to run
+`rvmsudo ./msfconsole -L` instead.
 
 ## Keeping In Sync
 
@@ -435,7 +476,7 @@ git log --pretty=oneline --name-only -3
 It should all look like this in your command window:
 
 [[/screens/git02.png]]
-*<sup>TODO: Update this screen to 2.1.5</sup>*
+*<sup>TODO: Update this screen to 2.1.8</sup>*
 
 It's pretty handy to have this checkout be persistent so you can
 reference it later. So, type this:
@@ -447,17 +488,17 @@ git checkout -b upstream-master
 And this will create a new local branch called "upstream-master." Now,
 switch back to your master branch and fetch anything new from there:
 
-````bash
+```bash
 git checkout master
 git fetch
-````
+```
 
 And finally, rebase against your local checkout of the upstream master
 branch:
 
-````bash
+```bash
 git rebase upstream-master
-```` 
+```
 
 Rebasing is the easiest way to make sure that your master branch is
 identical to the upstream master branch. If you have any local changes,
@@ -482,11 +523,11 @@ unwinding merge problems a little harder.
 "master," which can be confusing. "Origin" is a remote repository which
 contains all of **your** branches. "Master" is a branch of the source
 code -- usually the first branch, and the branch you don't tend to
-commit directly to. 
+commit directly to.
 
 > "Origin" **isn't** Rapid7's repository -- we usually refer to that
 repo as "Upstream." In other words, "upstream" is just another way of
-referring to the "rapid7" remote. 
+referring to the "rapid7" remote.
 
 > Got it? "Origin" is your repo up at GitHub, "upstream" is Rapid7's
 GitHub repo, and "master" is the primary branch of their respective
@@ -508,7 +549,7 @@ git push origin master
 It should all look something like this:
 
 [[/screens/git04.png]]
-*<sup>TODO: Update this screen to 2.1.5</sup>*
+*<sup>TODO: Update this screen to 2.1.8</sup>*
 
 Switch back to your browser, refresh, and you should see the new changes
 reflected in your repo immediately (those GitHub guys are super fast):
@@ -548,7 +589,7 @@ That command set should look something like this:
 [[/screens/pull02.png]]
 
 In your browser, go to your newly created branch, and click Pull
-Request. 
+Request.
 
 [[/screens/pull03.png]]
 
@@ -625,11 +666,10 @@ since they all run the same checks before landing.
 
 ## RSpec Tests
 
-We are slowly lurching toward a normal testing environment, now require
-rspec tests to validate changes to the core workings of the framework.
-To get in the habit, run the standard set of tests against your local
-Metasploit branch. First, make sure you have all the gems installed,
-then run the `rake spec` task.
+We really like to have spec tests to validate changes to the core
+workings of the framework. To get in the habit, run the standard set of
+tests against your local Metasploit branch. First, make sure you have
+all the gems installed, then run the `rake spec` task.
 
 ````
 gem install bundler # Only need to do this once
@@ -640,10 +680,11 @@ rake spec # Do this in the top-level Metasploit root
 For more on rspec (which is the de-facto testing standard for Ruby
 projects), see http://rspec.info/ and http://betterspecs.org. To add
 tests, drop them someplace sensible in the `spec` directory, and name
-your tests `whatever_spec.rb`. 
+your tests `whatever_spec.rb`.
 
-Adding rspec tests with your functional changes significantly increases
-your chances of getting your pull request landed in a timely manner.
+Adding rspec tests with your functional changes **significantly**
+increases your chances of getting your pull request landed in a timely
+manner.
 
 ## Signed commits
 
@@ -666,7 +707,7 @@ This document should be enough to get your Metasploit development career
 started, but it doesn't address huge areas of Git source control
 management. For that, you'll want to look at the [Git Community
 Book](http://book.git-scm.com/), the many answered questions on
-[StackOverflow](http://stackoverflow.com/questions/tagged/git), and the
+[Stack Overflow](http://stackoverflow.com/questions/tagged/git), and the
 [git cheat sheet](http://cheat.errtheblog.com/s/git/).
 
 Finally, you will want to initialize your [mind
@@ -682,10 +723,17 @@ resume and see if there are any current or upcoming openings.
 
 ## Development on OS X
 
-If you are looking for instructions on how to set up a development environment on OS X, please go to the following link:
+If you are looking for instructions on how to set up a development
+environment on OS X, please check to the following link:
 http://www.darkoperator.com/installing-metasploit-framewor/
 
-If you prefer an installation script, you can try the following made by our community contributor Carlos Perez.
-https://github.com/darkoperator/MSF-Installer
+If you prefer an installation script, you can try [the
+set](https://github.com/darkoperator/MSF-Installer) maintained by
+community contributor Carlos Perez.
 
-Any issues with the installation script, please contact Carlos, not Rapid7 :-)
+## Development on Kali Linux
+
+We [had] a delightful version of this document for Kali Linux 1.9; since
+the release of 2.x, though, it hasn't been updated. You're welcome to
+try!
+
